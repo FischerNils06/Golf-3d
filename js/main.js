@@ -5,18 +5,27 @@ const cube = new THREE.Mesh(
   new THREE.MeshBasicMaterial({ color: 0xff3333 })
 );
 
-three.scene.add(cube);
+const plane = new THREE.Mesh(
+  new THREE.PlaneGeometry(5, 5),
+  new THREE.MeshBasicMaterial({ color: 0x888888, side: THREE.DoubleSide })
+);
+plane.rotateX(Math.PI / 2);
+plane.position.y = -0.5;
 
-three.camera.position.set(1, 1, 2);
-three.camera.lookAt(new THREE.Vector3(0, 0, 0));
+three.scene.add(cube);
+three.scene.add(plane);
+
+const cameraDistance = 2; // Adjust the desired distance of the camera from the cube
+
+// Set initial camera position and target
+three.camera.position.set(0, 0, cameraDistance);
+three.camera.lookAt(cube.position);
 
 let isDragging = false;
 let previousMousePosition = {
   x: 0,
   y: 0
 };
-
-
 
 // Add mouse event listeners
 document.addEventListener('mousedown', onMouseDown);
@@ -40,16 +49,27 @@ function onMouseMove(event) {
       y: event.clientY - previousMousePosition.y
     };
 
-    const deltaRotationQuaternion = new THREE.Quaternion()
-      .setFromEuler(new THREE.Euler(
-        toRadians(deltaMove.y * 1),
-        toRadians(deltaMove.x * 1),
-        0,
-        'XYZ'
-      ));
+    const theta = (deltaMove.x * Math.PI) / 180;
+    const phi = (deltaMove.y * Math.PI) / 180;
 
-    cube.quaternion.multiplyQuaternions(deltaRotationQuaternion, cube.quaternion);
-    
+    const spherical = new THREE.Spherical().setFromVector3(
+      three.camera.position.clone().sub(cube.position)
+    );
+
+    spherical.theta -= theta;
+    spherical.phi -= phi;
+
+    // Restrict the vertical rotation to avoid flipping the camera
+    spherical.phi = Math.max(
+      0.01, // Minimum angle (close to the bottom)
+      Math.min(Math.PI - 0.01, spherical.phi) // Maximum angle (close to the top)
+    );
+
+    const targetPosition = new THREE.Vector3().setFromSpherical(spherical).add(cube.position);
+
+    three.camera.position.copy(targetPosition);
+    three.camera.lookAt(cube.position);
+
     previousMousePosition = {
       x: event.clientX,
       y: event.clientY
@@ -63,12 +83,6 @@ function onMouseUp(event) {
   }
 }
 
-function toRadians(angle) {
-  return angle * (Math.PI / 180);
-}
-
 three.on('update', function () {
   cube.rotateY(0.02);
 });
-
-
