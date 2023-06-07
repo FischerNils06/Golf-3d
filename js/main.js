@@ -1,7 +1,7 @@
 const three = new Threestrap.Bootstrap();
 
 const cube = new THREE.Mesh(
-  new THREE.BoxGeometry(1, 1, 1),
+  new THREE.SphereGeometry(0.2, 100, 100),
   new THREE.MeshBasicMaterial({ color: 0xff3333 })
 );
 
