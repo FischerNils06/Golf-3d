@@ -1,6 +1,8 @@
+const fall = require('./physics.js');
 const three = new Threestrap.Bootstrap();
 
-const cube = new THREE.Mesh(
+
+const sphere = new THREE.Mesh(
   new THREE.SphereGeometry(0.2, 100, 100),
   new THREE.MeshBasicMaterial({ color: 0xff3333 })
 );
@@ -9,17 +11,18 @@ const plane = new THREE.Mesh(
   new THREE.PlaneGeometry(5, 5),
   new THREE.MeshBasicMaterial({ color: 0x888888, side: THREE.DoubleSide })
 );
+
 plane.rotateX(Math.PI / 2);
 plane.position.y = -0.5;
 
-three.scene.add(cube);
+three.scene.add(sphere);
 three.scene.add(plane);
 
 const cameraDistance = 2; // Adjust the desired distance of the camera from the cube
 
 // Set initial camera position and target
 three.camera.position.set(0, 0, cameraDistance);
-three.camera.lookAt(cube.position);
+three.camera.lookAt(sphere.position);
 
 let isDragging = false;
 let previousMousePosition = {
@@ -53,7 +56,7 @@ function onMouseMove(event) {
     const phi = (deltaMove.y * Math.PI) / 180;
 
     const spherical = new THREE.Spherical().setFromVector3(
-      three.camera.position.clone().sub(cube.position)
+      three.camera.position.clone().sub(sphere.position)
     );
 
     spherical.theta -= theta;
@@ -65,10 +68,10 @@ function onMouseMove(event) {
       Math.min(Math.PI - 0.01, spherical.phi) // Maximum angle (close to the top)
     );
 
-    const targetPosition = new THREE.Vector3().setFromSpherical(spherical).add(cube.position);
+    const targetPosition = new THREE.Vector3().setFromSpherical(spherical).add(sphere.position);
 
     three.camera.position.copy(targetPosition);
-    three.camera.lookAt(cube.position);
+    three.camera.lookAt(sphere.position);
 
     previousMousePosition = {
       x: event.clientX,
@@ -84,5 +87,9 @@ function onMouseUp(event) {
 }
 
 three.on('update', function () {
-  cube.rotateY(0.02);
+  sphere.rotateY(0.02);
+  fall(sphere);
 });
+
+
+
